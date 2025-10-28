@@ -26,10 +26,11 @@
 
 #include <cstdint>
 #include <ctime>
+#include <cstring>
 
 #include <functional>
 
-
+#include "cwpack_internals.hpp"
 
 /*******************************   Return Codes   *****************************/
 
@@ -97,37 +98,371 @@ public:
 
 }
 
+/*************************   C   S Y S T E M   L I B R A R Y   ****************/
+
+#ifdef FORCE_NO_LIBRARY
+
+static void	*memcpy(void *dst, const void *src, size_t n)
+{
+    unsigned int i;
+    uint8_t *d=(uint8_t*)dst, *s=(uint8_t*)src;
+    for (i=0; i<n; i++)
+    {
+        *d++ = *s++;
+    }
+    return dst;
+}
+
+#endif
+
 
 using cw_pack_context = cwpack::context;
 typedef int (*pack_overflow_handler)(cw_pack_context*, unsigned long);
 typedef int (*pack_flush_handler)(cw_pack_context*);
 
+inline static int cw_pack_context_init (cw_pack_context* pack_context, void* data, unsigned long length, pack_overflow_handler hpo) {
+    new (pack_context) cw_pack_context{reinterpret_cast<uint8_t*>(data), length, hpo};
 
-int cw_pack_context_init (cw_pack_context* pack_context, void* data, unsigned long length, pack_overflow_handler hpo);
-void cw_pack_set_compatibility (cw_pack_context* pack_context, bool be_compatible);
-void cw_pack_set_flush_handler (cw_pack_context* pack_context, pack_flush_handler handle_flush);
-void cw_pack_flush (cw_pack_context* pack_context);
+    return pack_context->err_no;
+}
 
-void cw_pack_nil (cw_pack_context* pack_context);
-void cw_pack_true (cw_pack_context* pack_context);
-void cw_pack_false (cw_pack_context* pack_context);
-void cw_pack_boolean (cw_pack_context* pack_context, bool b);
+inline static void cw_pack_set_compatibility (cw_pack_context* pack_context, bool be_compatible) {
+    pack_context->be_compatible = be_compatible;
+}
 
-void cw_pack_signed (cw_pack_context* pack_context, int64_t i);
-void cw_pack_unsigned (cw_pack_context* pack_context, uint64_t i);
+inline static void cw_pack_set_flush_handler (cw_pack_context* pack_context, pack_flush_handler handle_flush) {
+    pack_context->handle_flush = handle_flush;
+}
 
-void cw_pack_float (cw_pack_context* pack_context, float f);
-void cw_pack_double (cw_pack_context* pack_context, double d);
+inline static void cw_pack_flush (cw_pack_context* pack_context)
+{
+    if (pack_context->return_code == CWP_RC_OK)
+        pack_context->return_code =
+            pack_context->handle_flush ?
+                pack_context->handle_flush(pack_context) :
+                CWP_RC_ILLEGAL_CALL;
+}
+
+inline static void cw_pack_nil(cw_pack_context* pack_context)
+{
+    if (pack_context->return_code)
+        return;
+
+    tryMove0(0xc0);
+}
+inline static void cw_pack_true (cw_pack_context* pack_context)
+{
+    if (pack_context->return_code)
+        return;
+
+    tryMove0(0xc3);
+}
+
+
+inline void cw_pack_false (cw_pack_context* pack_context)
+{
+    if (pack_context->return_code)
+        return;
+
+    tryMove0(0xc2);
+}
+inline void cw_pack_boolean(cw_pack_context* pack_context, bool b)
+{
+    if (pack_context->return_code)
+        return;
+
+    tryMove0(b? 0xc3: 0xc2);
+}
+
+
+inline static void cw_pack_signed(cw_pack_context* pack_context, int64_t i)
+{
+    if (pack_context->return_code)
+        return;
+
+    if (i >127)
+    {
+        if (i < 256)
+            tryMove1(0xcc, i);
+
+        if (i < 0x10000L)
+            tryMove2(0xcd, i);
+
+        if (i < 0x100000000LL)
+            tryMove4(0xce, i);
+
+        tryMove8(0xcf,i);
+    }
+
+    if (i >= -32)
+        tryMove0(i);
+
+    if (i >= -128)
+        tryMove1(0xd0, i);
+
+    if (i >= -32768)
+        tryMove2(0xd1,i);
+
+    if (i >= (int64_t)0xffffffff80000000LL)
+        tryMove4(0xd2,i);
+
+    tryMove8(0xd3,i);
+}
+inline static void cw_pack_unsigned(cw_pack_context* pack_context, uint64_t i)
+{
+    if (pack_context->return_code)
+        return;
+
+    if (i < 128)
+        tryMove0(i);
+
+    if (i < 256)
+        tryMove1(0xcc, i);
+
+    if (i < 0x10000L)
+    {
+        tryMove2(0xcd, i);
+    }
+    if (i < 0x100000000LL)
+        tryMove4(0xce, i);
+
+    tryMove8(0xcf,i);
+}
+
+inline static void cw_pack_float(cw_pack_context* pack_context, float f)
+{
+    if (pack_context->return_code)
+        return;
+
+    uint32_t tmp = *((uint32_t*)&f);
+    tryMove4(0xca,tmp);
+}
+
+inline static void cw_pack_double(cw_pack_context* pack_context, double d)
+{
+    if (pack_context->return_code)
+        return;
+
+    uint64_t tmp = *((uint64_t*)&d);
+    tryMove8(0xcb,tmp);
+}
 /* void cw_pack_real (cw_pack_context* pack_context, double d);   moved to cwpack_utils */
 
-void cw_pack_array_size (cw_pack_context* pack_context, uint32_t n);
-void cw_pack_map_size (cw_pack_context* pack_context, uint32_t n);
-void cw_pack_str (cw_pack_context* pack_context, const char* v, uint32_t l);
-void cw_pack_bin (cw_pack_context* pack_context, const void* v, uint32_t l);
-void cw_pack_ext (cw_pack_context* pack_context, int8_t type, const void* v, uint32_t l);
-void cw_pack_time (cw_pack_context* pack_context, int64_t sec, uint32_t nsec);
+inline static void cw_pack_array_size(cw_pack_context* pack_context, uint32_t n)
+{
+    if (pack_context->return_code)
+        return;
 
-void cw_pack_insert (cw_pack_context* pack_context, const void* v, uint32_t l);
+    if (n < 16)
+        tryMove0(0x90 | n);
+
+    if (n < 65536)
+        tryMove2(0xdc, n);
+
+    tryMove4(0xdd, n);
+}
+
+inline static void cw_pack_map_size(cw_pack_context* pack_context, uint32_t n)
+{
+    if (pack_context->return_code)
+        return;
+
+    if (n < 16)
+        tryMove0(0x80 | n);
+
+    if (n < 65536)
+        tryMove2(0xde, n);
+
+    tryMove4(0xdf, n);
+}
+
+inline static void cw_pack_str(cw_pack_context* pack_context, const char* v, uint32_t l)
+{
+    if (pack_context->return_code)
+        return;
+
+    uint8_t *p;
+
+    if (l < 32)             // Fixstr
+    {
+        cw_pack_reserve_space(l+1);
+        *p = (uint8_t)(0xa0 + l);
+        memcpy(p+1,v,l);
+        return;
+    }
+    if (l < 256 && !pack_context->be_compatible)       // Str 8
+    {
+        cw_pack_reserve_space(l+2);
+        *p++ = (uint8_t)(0xd9);
+        *p = (uint8_t)(l);
+        memcpy(p+1,v,l);
+        return;
+    }
+    if (l < 65536)     // Str 16
+    {
+        cw_pack_reserve_space(l+3)
+        *p++ = (uint8_t)0xda;
+        cw_store16(l);
+        memcpy(p+2,v,l);
+        return;
+    }
+    // Str 32
+    cw_pack_reserve_space(l+5)
+    *p++ = (uint8_t)0xdb;
+    cw_store32(l);
+    memcpy(p+4,v,l);
+    return;
+}
+
+inline static void cw_pack_bin(cw_pack_context* pack_context, const void* v, uint32_t l)
+{
+    if (pack_context->return_code)
+        return;
+
+    if (pack_context->be_compatible)
+    {
+        cw_pack_str( pack_context, (const char*)v, l);
+        return;
+    }
+
+    uint8_t *p;
+
+    if (l < 256)            // Bin 8
+    {
+        cw_pack_reserve_space(l+2);
+        *p++ = (uint8_t)(0xc4);
+        *p = (uint8_t)(l);
+        memcpy(p+1,v,l);
+        return;
+    }
+    if (l < 65536)     // Bin 16
+    {
+        cw_pack_reserve_space(l+3)
+        *p++ = (uint8_t)0xc5;
+        cw_store16(l);
+        memcpy(p+2,v,l);
+        return;
+    }
+    // Bin 32
+    cw_pack_reserve_space(l+5)
+    *p++ = (uint8_t)0xc6;
+    cw_store32(l);
+    memcpy(p+4,v,l);
+    return;
+}
+
+inline static void cw_pack_ext (cw_pack_context* pack_context, int8_t type, const void* v, uint32_t l)
+{
+    if (pack_context->return_code)
+        return;
+
+    if (pack_context->be_compatible)
+        PACK_ERROR(CWP_RC_ILLEGAL_CALL);
+
+    uint8_t *p;
+
+    switch (l)
+    {
+        case 1:                                         // Fixext 1
+            cw_pack_reserve_space(3);
+            *p++ = (uint8_t)0xd4;
+            *p++ = (uint8_t)type;
+            *p++ = *(uint8_t*)v;
+            return;
+        case 2:                                         // Fixext 2
+            cw_pack_reserve_space(4);
+            *p++ = (uint8_t)0xd5;
+            break;
+        case 4:                                         // Fixext 4
+            cw_pack_reserve_space(6);
+            *p++ = (uint8_t)0xd6;
+            break;
+        case 8:                                         // Fixext 8
+            cw_pack_reserve_space(10);
+            *p++ = (uint8_t)0xd7;
+            break;
+        case 16:                                        // Fixext16
+            cw_pack_reserve_space(18);
+            *p++ = (uint8_t)0xd8;
+            break;
+        default:
+            if (l < 256)                                // Ext 8
+            {
+                cw_pack_reserve_space(l+3);
+                *p++ = (uint8_t)0xc7;
+                *p++ = (uint8_t)(l);
+            }
+            else if (l < 65536)                         // Ext 16
+            {
+                cw_pack_reserve_space(l+4)
+                *p++ = (uint8_t)0xc8;
+                cw_store16(l);
+                p += 2;
+            }
+            else                                        // Ext 32
+            {
+                cw_pack_reserve_space(l+6)
+                *p++ = (uint8_t)0xc9;
+                cw_store32(l);
+                p += 4;
+            }
+    }
+    *p++ = (uint8_t)type;
+    memcpy(p,v,l);
+}
+
+inline static void cw_pack_time (cw_pack_context* pack_context, int64_t sec, uint32_t nsec)
+{
+    if (pack_context->return_code)
+        return;
+
+    if (pack_context->be_compatible)
+        PACK_ERROR(CWP_RC_ILLEGAL_CALL);
+
+    if (nsec >= 1000000000)
+        PACK_ERROR(CWP_RC_VALUE_ERROR);
+
+    uint8_t *p;
+
+    if ((uint64_t)sec & 0xfffffffc00000000LL) {
+        // timestamp 96
+        //serialize(0xc7, 12, -1, nsec, sec)
+        cw_pack_reserve_space(15);
+        *p++ = (uint8_t)0xc7;
+        *p++ = (uint8_t)12;
+        *p++ = (uint8_t)0xff;
+        cw_store32(nsec); p += 4;
+        cw_store64(sec);
+    }
+    else {
+        uint64_t data64 = (((uint64_t)nsec << 34) | (uint64_t)sec);
+        if (data64 & 0xffffffff00000000LL) {
+            // timestamp 64
+            //serialize(0xd7, -1, data64)
+            cw_pack_reserve_space(10);
+            *p++ = (uint8_t)0xd7;
+            *p++ = (uint8_t)0xff;
+            cw_store64(data64);
+        }
+        else {
+            // timestamp 32
+            uint32_t data32 = (uint32_t)data64;
+            //serialize(0xd6, -1, data32)
+            cw_pack_reserve_space(6);
+            *p++ = (uint8_t)0xd6;
+            *p++ = (uint8_t)0xff;
+            cw_store32(data32);
+        }
+    }
+}
+
+inline static void cw_pack_insert (cw_pack_context* pack_context, const void* v, uint32_t l)
+{
+    uint8_t *p;
+    cw_pack_reserve_space(l);
+    memcpy(p,v,l);
+}
+
 
 
 /*****************************   U N P A C K   ********************************/
