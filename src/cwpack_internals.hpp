@@ -197,7 +197,7 @@
 
 #define UNPACK_ERROR_SUB(error_code,abortValue)         \
 {                                                       \
-    unpack_context->item.type = CWP_NOT_AN_ITEM;        \
+    unpack_context->item.type = cwpack::item_type::NOT_AN_ITEM;        \
     unpack_context->return_code = error_code;           \
     return abortValue;                                  \
 }
@@ -339,7 +339,7 @@
 #define getDDItemFix(len)                                                   \
     cw_unpack_assert_space(len+1);                                          \
     unpack_context->item.type = (cwpack_item_types)*(int8_t*)p++;           \
-    if (unpack_context->item.type == CWP_ITEM_TIMESTAMP)                    \
+    if (unpack_context->item.type == cwpack::item_type::TIMESTAMP)                    \
     {                                                                       \
         if (len == 4)                                                       \
         {                                                                   \

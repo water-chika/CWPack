@@ -454,11 +454,11 @@ static item_root* packContext2item3 (cw_unpack_context* uc)
     item_container* ic;
     switch (uc->item.type)
     {
-        case CWP_ITEM_NIL:
+        case cwpack::item_type::NIL:
             result = allocate_item(item_root,ITEM_NIL,0);
             break;
 
-        case CWP_ITEM_BOOLEAN:
+        case cwpack::item_type::BOOLEAN:
             if (uc->item.as.boolean)
             {
                 result = allocate_item(item_root,ITEM_TRUE,0);
@@ -469,29 +469,29 @@ static item_root* packContext2item3 (cw_unpack_context* uc)
             }
             break;
 
-        case CWP_ITEM_POSITIVE_INTEGER:
-        case CWP_ITEM_NEGATIVE_INTEGER:
+        case cwpack::item_type::POSITIVE_INTEGER:
+        case cwpack::item_type::NEGATIVE_INTEGER:
             result = (item_root*)allocate_item(item_integer,ITEM_INTEGER,0);
             ((item_integer*)result)->value = uc->item.as.i64;
             break;
 
-        case CWP_ITEM_FLOAT:
+        case cwpack::item_type::FLOAT:
             result = (item_root*)allocate_item(item_real,ITEM_REAL,0);
             ((item_real*)result)->value = uc->item.as.real;
             break;
 
-        case CWP_ITEM_DOUBLE:
+        case cwpack::item_type::DOUBLE:
             result = (item_root*)allocate_item(item_real,ITEM_REAL,0);
             ((item_real*)result)->value = uc->item.as.long_real;
             break;
 
-        case CWP_ITEM_STR:
+        case cwpack::item_type::STR:
             result = (item_root*)allocate_item(item_string,ITEM_STRING,uc->item.as.str.length + 1);
             strncpy(((item_string*)result)->string, (const char*)uc->item.as.str.start, uc->item.as.str.length);
             ((item_string*)result)->string[uc->item.as.str.length] = 0;
             break;
 
-        case CWP_ITEM_MAP:
+        case cwpack::item_type::MAP:
             dim = 2 * uc->item.as.map.size;
             ic = allocate_container(ITEM_MAP, dim);
             for (i=0; i<dim; i++)
@@ -501,7 +501,7 @@ static item_root* packContext2item3 (cw_unpack_context* uc)
             result = (item_root*)ic;
             break;
 
-        case CWP_ITEM_ARRAY:
+        case cwpack::item_type::ARRAY:
             dim = uc->item.as.array.size;
             ic = allocate_container(ITEM_ARRAY, dim);
             for (i=0; i<dim; i++)

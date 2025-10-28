@@ -140,7 +140,7 @@ static void check_unpack(int val, int result)
     cw_unpack_next(&unpack_ctx);
     if (unpack_ctx.return_code != result)
         ERROR2("rc=", unpack_ctx.return_code, result);
-    if (unpack_ctx.return_code == 0 && unpack_ctx.item.type != CWP_ITEM_POSITIVE_INTEGER && unpack_ctx.item.as.i64 != val)
+    if (unpack_ctx.return_code == 0 && unpack_ctx.item.type != cwpack::item_type::POSITIVE_INTEGER && unpack_ctx.item.as.i64 != val)
         ERROR("Wrong item");
 }
 
@@ -342,10 +342,10 @@ int main(int argc, const char * argv[])
     inputbuf[ui] = (uint8_t)(char2hex(buffer[2*ui])<<4) + char2hex(buffer[2*ui +1]);    \
     cw_unpack_context_init (&unpack_ctx, inputbuf, len+blob_length, 0);                 \
     cit = cw_look_ahead(&unpack_ctx);                                                   \
-    if (cit != CWP_ITEM_##etype)                                                        \
+    if (static_cast<int>(cit) != static_cast<int>(etype))                                                        \
         ERROR("In lookahead, type error");                                              \
     cw_unpack_next(&unpack_ctx);                                                        \
-    if (unpack_ctx.item.type != CWP_ITEM_##etype)                                       \
+    if (static_cast<int>(unpack_ctx.item.type) != static_cast<int>(etype))                                       \
         ERROR("In unpack, type error");                                                 \
 }
 
@@ -358,63 +358,63 @@ int main(int argc, const char * argv[])
     cwpack_item_types cit;
 
     // TESTUP NIL
-    TESTUP("c0",NIL);
+    TESTUP("c0",cwpack::item_type::NIL);
 
     // TESTUP boolean
-    TESTUP_VAL("c2",BOOLEAN,boolean,false);
-    TESTUP_VAL("c3",BOOLEAN,boolean,true);
+    TESTUP_VAL("c2",cwpack::item_type::BOOLEAN,boolean,false);
+    TESTUP_VAL("c3",cwpack::item_type::BOOLEAN,boolean,true);
 
     // TESTUP unsigned int
-    TESTUP_VAL("00",POSITIVE_INTEGER,u64,0)
-    TESTUP_VAL("7f",POSITIVE_INTEGER,u64,127)
-    TESTUP_VAL("cc80",POSITIVE_INTEGER,u64,128)
-    TESTUP_VAL("ccff",POSITIVE_INTEGER,u64,255)
-    TESTUP_VAL("cd0100",POSITIVE_INTEGER,u64,256)
-    TESTUP_VAL("cdffff",POSITIVE_INTEGER,u64,65535)
-    TESTUP_VAL("ce00010000",POSITIVE_INTEGER,u64,65536)
-    TESTUP_VAL("ceffffffff",POSITIVE_INTEGER,u64,0xffffffffUL)
-    TESTUP_VAL("cf0000000100000000",POSITIVE_INTEGER,u64,0x100000000ULL)
-    TESTUP_VAL("cfffffffffffffffff",POSITIVE_INTEGER,u64,0xffffffffffffffffULL)
+    TESTUP_VAL("00",cwpack::item_type::POSITIVE_INTEGER,u64,0)
+    TESTUP_VAL("7f",cwpack::item_type::POSITIVE_INTEGER,u64,127)
+    TESTUP_VAL("cc80",cwpack::item_type::POSITIVE_INTEGER,u64,128)
+    TESTUP_VAL("ccff",cwpack::item_type::POSITIVE_INTEGER,u64,255)
+    TESTUP_VAL("cd0100",cwpack::item_type::POSITIVE_INTEGER,u64,256)
+    TESTUP_VAL("cdffff",cwpack::item_type::POSITIVE_INTEGER,u64,65535)
+    TESTUP_VAL("ce00010000",cwpack::item_type::POSITIVE_INTEGER,u64,65536)
+    TESTUP_VAL("ceffffffff",cwpack::item_type::POSITIVE_INTEGER,u64,0xffffffffUL)
+    TESTUP_VAL("cf0000000100000000",cwpack::item_type::POSITIVE_INTEGER,u64,0x100000000ULL)
+    TESTUP_VAL("cfffffffffffffffff",cwpack::item_type::POSITIVE_INTEGER,u64,0xffffffffffffffffULL)
 
     // TESTUP signed int
-    TESTUP_VAL("ff",NEGATIVE_INTEGER,i64,-1)
-    TESTUP_VAL("e0",NEGATIVE_INTEGER,i64,-32)
-    TESTUP_VAL("d0df",NEGATIVE_INTEGER,i64,-33)
-    TESTUP_VAL("d080",NEGATIVE_INTEGER,i64,-128)
-    TESTUP_VAL("d1ff7f",NEGATIVE_INTEGER,i64,-129)
-    TESTUP_VAL("d18000",NEGATIVE_INTEGER,i64,-32768)
-    TESTUP_VAL("d2ffff7fff",NEGATIVE_INTEGER,i64,-32769)
-    TESTUP_VAL("d3ffffffff7fffffff",NEGATIVE_INTEGER,i64,-2147483649)
+    TESTUP_VAL("ff",cwpack::item_type::NEGATIVE_INTEGER,i64,-1)
+    TESTUP_VAL("e0",cwpack::item_type::NEGATIVE_INTEGER,i64,-32)
+    TESTUP_VAL("d0df",cwpack::item_type::NEGATIVE_INTEGER,i64,-33)
+    TESTUP_VAL("d080",cwpack::item_type::NEGATIVE_INTEGER,i64,-128)
+    TESTUP_VAL("d1ff7f",cwpack::item_type::NEGATIVE_INTEGER,i64,-129)
+    TESTUP_VAL("d18000",cwpack::item_type::NEGATIVE_INTEGER,i64,-32768)
+    TESTUP_VAL("d2ffff7fff",cwpack::item_type::NEGATIVE_INTEGER,i64,-32769)
+    TESTUP_VAL("d3ffffffff7fffffff",cwpack::item_type::NEGATIVE_INTEGER,i64,-2147483649)
 
     // TESTUP real
     //    float f1 = 3.14;
-    TESTUP_VAL("ca00000000",FLOAT,real,0.0)
-    TESTUP_VAL("ca4048f5c3",FLOAT,real,f1)
-    TESTUP_VAL("cb0000000000000000",DOUBLE,long_real,0.0)
-    TESTUP_VAL("cb40091eb860000000",DOUBLE,long_real,f1)
-    TESTUP_VAL("cb40091eb851eb851f",DOUBLE,long_real,3.14)
+    TESTUP_VAL("ca00000000",cwpack::item_type::FLOAT,real,0.0)
+    TESTUP_VAL("ca4048f5c3",cwpack::item_type::FLOAT,real,f1)
+    TESTUP_VAL("cb0000000000000000",cwpack::item_type::DOUBLE,long_real,0.0)
+    TESTUP_VAL("cb40091eb860000000",cwpack::item_type::DOUBLE,long_real,f1)
+    TESTUP_VAL("cb40091eb851eb851f",cwpack::item_type::DOUBLE,long_real,3.14)
 
     // TESTUP array
-    TESTUP_VAL("90",ARRAY,array.size,0)
-    TESTUP_VAL("9f",ARRAY,array.size,15)
-    TESTUP_VAL("dc0010",ARRAY,array.size,16)
-    TESTUP_VAL("dcffff",ARRAY,array.size,65535)
-    TESTUP_VAL("dd00010000",ARRAY,array.size,65536)
+    TESTUP_VAL("90",cwpack::item_type::ARRAY,array.size,0)
+    TESTUP_VAL("9f",cwpack::item_type::ARRAY,array.size,15)
+    TESTUP_VAL("dc0010",cwpack::item_type::ARRAY,array.size,16)
+    TESTUP_VAL("dcffff",cwpack::item_type::ARRAY,array.size,65535)
+    TESTUP_VAL("dd00010000",cwpack::item_type::ARRAY,array.size,65536)
 
     // TESTUP map
-    TESTUP_VAL("80",MAP,map.size,0)
-    TESTUP_VAL("8f",MAP,map.size,15)
-    TESTUP_VAL("de0010",MAP,map.size,16)
-    TESTUP_VAL("deffff",MAP,map.size,65535)
-    TESTUP_VAL("df00010000",MAP,map.size,65536)
+    TESTUP_VAL("80",cwpack::item_type::MAP,map.size,0)
+    TESTUP_VAL("8f",cwpack::item_type::MAP,map.size,15)
+    TESTUP_VAL("de0010",cwpack::item_type::MAP,map.size,16)
+    TESTUP_VAL("deffff",cwpack::item_type::MAP,map.size,65535)
+    TESTUP_VAL("df00010000",cwpack::item_type::MAP,map.size,65536)
 
     // TESTUP timeStamp
-    TESTUP_VAL("d6ff00000001",TIMESTAMP,time.tv_sec,1);
-    TESTUP_VAL("d6ff00000001",TIMESTAMP,time.tv_nsec,0);
-    TESTUP_VAL("d7ff0000000800000001",TIMESTAMP,time.tv_sec,1);
-    TESTUP_VAL("d7ff0000000800000001",TIMESTAMP,time.tv_nsec,2);
-    TESTUP_VAL("c70cff1dcd6500ffffffffffffffff",TIMESTAMP,time.tv_sec,-1);
-    TESTUP_VAL("c70cff1dcd6500ffffffffffffffff",TIMESTAMP,time.tv_nsec,500000000);
+    TESTUP_VAL("d6ff00000001",cwpack::item_type::TIMESTAMP,time.tv_sec,1);
+    TESTUP_VAL("d6ff00000001",cwpack::item_type::TIMESTAMP,time.tv_nsec,0);
+    TESTUP_VAL("d7ff0000000800000001",cwpack::item_type::TIMESTAMP,time.tv_sec,1);
+    TESTUP_VAL("d7ff0000000800000001",cwpack::item_type::TIMESTAMP,time.tv_nsec,2);
+    TESTUP_VAL("c70cff1dcd6500ffffffffffffffff",cwpack::item_type::TIMESTAMP,time.tv_sec,-1);
+    TESTUP_VAL("c70cff1dcd6500ffffffffffffffff",cwpack::item_type::TIMESTAMP,time.tv_nsec,500000000);
 
 #define TESTUP_AREA(buffer,etype,blob,len)                 \
     blob_length = len;                                     \
@@ -422,20 +422,20 @@ int main(int argc, const char * argv[])
     TESTUP_VAL(buffer,etype,blob.start,inputbuf + strlen(buffer)/2)
 
     // TESTUP str
-    TESTUP_AREA("a0",STR,str,0);
-    TESTUP_AREA("bf",STR,str,31);
-    TESTUP_AREA("d920",STR,str,32);
-    TESTUP_AREA("d9ff",STR,str,255);
-    TESTUP_AREA("da0100",STR,str,256);
-    TESTUP_AREA("daffff",STR,str,65535);
-    TESTUP_AREA("db00010000",STR,str,65536);
+    TESTUP_AREA("a0",cwpack::item_type::STR,str,0);
+    TESTUP_AREA("bf",cwpack::item_type::STR,str,31);
+    TESTUP_AREA("d920",cwpack::item_type::STR,str,32);
+    TESTUP_AREA("d9ff",cwpack::item_type::STR,str,255);
+    TESTUP_AREA("da0100",cwpack::item_type::STR,str,256);
+    TESTUP_AREA("daffff",cwpack::item_type::STR,str,65535);
+    TESTUP_AREA("db00010000",cwpack::item_type::STR,str,65536);
 
     // TESTUP bin
-    TESTUP_AREA("c400",BIN,bin,0);
-    TESTUP_AREA("c4ff",BIN,bin,255);
-    TESTUP_AREA("c50100",BIN,bin,256);
-    TESTUP_AREA("c5ffff",BIN,bin,65535);
-    TESTUP_AREA("c600010000",BIN,bin,65536);
+    TESTUP_AREA("c400",cwpack::item_type::BIN,bin,0);
+    TESTUP_AREA("c4ff",cwpack::item_type::BIN,bin,255);
+    TESTUP_AREA("c50100",cwpack::item_type::BIN,bin,256);
+    TESTUP_AREA("c5ffff",cwpack::item_type::BIN,bin,65535);
+    TESTUP_AREA("c600010000",cwpack::item_type::BIN,bin,65536);
 
     // TESTUP ext
 #define CWP_ITEM_15 15
