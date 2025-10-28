@@ -98,24 +98,6 @@ public:
 
 }
 
-/*************************   C   S Y S T E M   L I B R A R Y   ****************/
-
-#ifdef FORCE_NO_LIBRARY
-
-static void	*memcpy(void *dst, const void *src, size_t n)
-{
-    unsigned int i;
-    uint8_t *d=(uint8_t*)dst, *s=(uint8_t*)src;
-    for (i=0; i<n; i++)
-    {
-        *d++ = *s++;
-    }
-    return dst;
-}
-
-#endif
-
-
 using cw_pack_context = cwpack::context;
 typedef int (*pack_overflow_handler)(cw_pack_context*, unsigned long);
 typedef int (*pack_flush_handler)(cw_pack_context*);
