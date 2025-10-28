@@ -34,7 +34,7 @@
 /*****************************************  DYNAMIC MEMORY PACK CONTEXT  ********************************/
 
 
-static int handle_memory_pack_overflow(struct cw_pack_context* pc, unsigned long more)
+static int handle_memory_pack_overflow(cw_pack_context* pc, unsigned long more)
 {
     unsigned long contains = (unsigned long)(pc->current - pc->start);
     unsigned long tot_len = contains + more;
@@ -78,7 +78,7 @@ void free_dynamic_memory_pack_context(dynamic_memory_pack_context* dmpc)
 
 
 
-static int flush_stream_pack_context(struct cw_pack_context* pc)
+static int flush_stream_pack_context(cw_pack_context* pc)
 {
     stream_pack_context* spc = (stream_pack_context*)pc;
     unsigned long contains = (unsigned long)(pc->current - pc->start);
@@ -95,7 +95,7 @@ static int flush_stream_pack_context(struct cw_pack_context* pc)
 }
 
 
-static int handle_stream_pack_overflow(struct cw_pack_context* pc, unsigned long more)
+static int handle_stream_pack_overflow(cw_pack_context* pc, unsigned long more)
 {
     int rc = flush_stream_pack_context(pc);
     if (rc != CWP_RC_OK)
@@ -150,7 +150,7 @@ void terminate_stream_pack_context(stream_pack_context* spc)
 /*****************************************  STREAM UNPACK CONTEXT  *******************************/
 
 
-static int handle_stream_unpack_underflow(struct cw_unpack_context* uc, unsigned long more)
+static int handle_stream_unpack_underflow(cw_unpack_context* uc, unsigned long more)
 {
     stream_unpack_context* suc = (stream_unpack_context*)uc;
     unsigned long remains = (unsigned long)(uc->end - uc->current);
@@ -214,7 +214,7 @@ void terminate_stream_unpack_context(stream_unpack_context* suc)
 /*****************************************  FILE PACK CONTEXT  **********************************/
 
 
-static int flush_file_pack_context(struct cw_pack_context* pc)
+static int flush_file_pack_context(cw_pack_context* pc)
 {
     file_pack_context* fpc = (file_pack_context*)pc;
     uint8_t *bStart = fpc->barrier ? fpc->barrier : pc->current;
@@ -243,7 +243,7 @@ static int flush_file_pack_context(struct cw_pack_context* pc)
     return CWP_RC_OK;
 }
 
-static int handle_file_pack_overflow(struct cw_pack_context* pc, unsigned long more)
+static int handle_file_pack_overflow(cw_pack_context* pc, unsigned long more)
 {
     file_pack_context* fpc = (file_pack_context*)pc;
     int rc = flush_file_pack_context(pc);
@@ -327,7 +327,7 @@ void terminate_file_pack_context(file_pack_context* fpc)
 /*****************************************  FILE UNPACK CONTEXT  ********************************/
 
 
-static int handle_file_unpack_underflow(struct cw_unpack_context* uc, unsigned long more)
+static int handle_file_unpack_underflow(cw_unpack_context* uc, unsigned long more)
 {
     file_unpack_context* auc = (file_unpack_context*)uc;
     uint8_t *bStart = auc->barrier ? auc->barrier : uc->current;

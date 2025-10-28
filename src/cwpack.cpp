@@ -47,25 +47,6 @@ static void	*memcpy(void *dst, const void *src, size_t n)
 
 
 
-/*************************   B Y T E   O R D E R   ****************************/
-
-
-static int test_byte_order(void)
-{
-#ifdef COMPILE_FOR_BIG_ENDIAN
-    const char *endianness = "1234";
-    if (*(uint32_t*)endianness != 0x31323334UL)
-        return CWP_RC_WRONG_BYTE_ORDER;
-#else
-
-#ifdef COMPILE_FOR_LITTLE_ENDIAN
-    const char *endianness = "1234";
-    if (*(uint32_t*)endianness != 0x34333231UL)
-        return CWP_RC_WRONG_BYTE_ORDER;
-#endif
-#endif
-    return CWP_RC_OK;
-}
 
 
 /*******************************   P A C K   **********************************/
@@ -80,7 +61,7 @@ int cw_pack_context_init (cw_pack_context* pack_context, void* data, unsigned lo
     pack_context->err_no = 0;
     pack_context->handle_pack_overflow = hpo;
     pack_context->handle_flush = NULL;
-    pack_context->return_code = test_byte_order();
+    pack_context->return_code = cwpack::test_byte_order();
     return pack_context->return_code;
 }
 
@@ -451,7 +432,7 @@ int cw_unpack_context_init (cw_unpack_context* unpack_context, const void* data,
 {
     unpack_context->start = unpack_context->current = (uint8_t*)data;
     unpack_context->end = unpack_context->start + length;
-    unpack_context->return_code = test_byte_order();
+    unpack_context->return_code = cwpack::test_byte_order();
     unpack_context->err_no = 0;
     unpack_context->handle_unpack_underflow = huu;
     return unpack_context->return_code;

@@ -24,9 +24,10 @@
 #define CWPack_H__
 
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <time.h>
+#include <cstdint>
+#include <ctime>
+
+#include <functional>
 
 
 
@@ -46,26 +47,60 @@
 #define CWP_RC_VALUE_ERROR              -11
 #define CWP_RC_WRONG_TIMESTAMP_LENGTH   -12
 
+namespace cwpack {
 
+static int test_byte_order(void)
+{
+#ifdef COMPILE_FOR_BIG_ENDIAN
+    const char *endianness = "1234";
+    if (*(uint32_t*)endianness != 0x31323334UL)
+        return CWP_RC_WRONG_BYTE_ORDER;
+#else
 
-/*******************************   P A C K   **********************************/
+#ifdef COMPILE_FOR_LITTLE_ENDIAN
+    const char *endianness = "1234";
+    if (*(uint32_t*)endianness != 0x34333231UL)
+        return CWP_RC_WRONG_BYTE_ORDER;
+#endif
+#endif
+    return CWP_RC_OK;
+}
 
+struct context {
+public:
+    using overflow_handler = std::function<int (context*, unsigned long)>;
+    using flush_handler = std::function<int (context*)>;
 
-struct cw_pack_context;
+    context() = default;
+    context(uint8_t* data, unsigned long length, overflow_handler overflow_handler)
+        :
+            start{data},
+            current{data},
+            end{data + length},
+            be_compatible{false},
+            return_code{test_byte_order()},
+            err_no{},
+            handle_pack_overflow{overflow_handler},
+            handle_flush{}
+    {}
+    ~context() = default;
 
-typedef int (*pack_overflow_handler)(struct cw_pack_context*, unsigned long);
-typedef int (*pack_flush_handler)(struct cw_pack_context*);
-
-typedef struct cw_pack_context {
     uint8_t*                current;
     uint8_t*                start;
     uint8_t*                end;
     bool                    be_compatible;
     int                     return_code;
     int                     err_no;          /* handlers can save error here */
-    pack_overflow_handler   handle_pack_overflow;
-    pack_flush_handler      handle_flush;
-} cw_pack_context;
+    std::function<int (context*, unsigned long)> handle_pack_overflow;
+    std::function<int (context*)> handle_flush;
+};
+
+}
+
+
+using cw_pack_context = cwpack::context;
+typedef int (*pack_overflow_handler)(cw_pack_context*, unsigned long);
+typedef int (*pack_flush_handler)(cw_pack_context*);
 
 
 int cw_pack_context_init (cw_pack_context* pack_context, void* data, unsigned long length, pack_overflow_handler hpo);
