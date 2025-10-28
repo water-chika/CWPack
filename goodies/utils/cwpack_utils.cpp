@@ -21,7 +21,7 @@
  */
 
 
-#include <math.h>
+#include <cmath>
 #include "cwpack_utils.h"
 
 
@@ -57,7 +57,7 @@ void cw_pack_float_opt (cw_pack_context* pack_context, float f)
 
 void cw_pack_time_interval (cw_pack_context* pack_context, double ti)
 {
-    int64_t  sec = (int64_t)floor(ti);
+    int64_t  sec = std::floor(ti);
     uint32_t nsec = (uint32_t)((ti - (double)sec) * 1000000000.0);
     cw_pack_time(pack_context, sec, nsec);
 }

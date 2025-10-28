@@ -188,7 +188,7 @@ void item32JsonFile (FILE* file, item_root* item)
 #define scanSpace while (**ptr == ' ' || **ptr == '\n' || **ptr == '\t') (*ptr)++
 
 #define  allocate_item(typ, typeMark, extra) \
-malloc (sizeof(typ) + extra); \
+reinterpret_cast<typ*>(malloc (sizeof(typ) + extra)); \
 result->item_type = typeMark
 
 
@@ -368,7 +368,7 @@ item_root* jsonFile2item3 (FILE* file)
 {
     fseek (file, 0, SEEK_END);
     long length = ftell(file);
-    char* buffer = malloc (length+1);
+    char* buffer = reinterpret_cast<char*>(malloc (length+1));
 
     fseek (file, 0l, SEEK_SET);
     fread (buffer, 1, length, file);

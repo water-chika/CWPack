@@ -70,8 +70,8 @@ static char char2hex (char c)
     return c - 'a' + 10;
 }
 
-
-static void check_pack_result(const char* expected_header, unsigned long data_length)__attribute__ ((optnone))
+__attribute__ ((optnone))
+static void check_pack_result(const char* expected_header, unsigned long data_length)
 {
     // expected contains the result in HEX
     unsigned long header_length = strlen(expected_header) / 2;
