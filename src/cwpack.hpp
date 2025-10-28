@@ -34,19 +34,21 @@
 
 /*******************************   Return Codes   *****************************/
 
-#define CWP_RC_OK                         0
-#define CWP_RC_END_OF_INPUT              -1
-#define CWP_RC_BUFFER_OVERFLOW           -2
-#define CWP_RC_BUFFER_UNDERFLOW          -3
-#define CWP_RC_MALFORMED_INPUT           -4
-#define CWP_RC_WRONG_BYTE_ORDER          -5
-#define CWP_RC_ERROR_IN_HANDLER          -6
-#define CWP_RC_ILLEGAL_CALL              -7
-#define CWP_RC_MALLOC_ERROR              -8
-#define CWP_RC_STOPPED                   -9
-#define CWP_RC_TYPE_ERROR               -10
-#define CWP_RC_VALUE_ERROR              -11
-#define CWP_RC_WRONG_TIMESTAMP_LENGTH   -12
+enum CWP_RC {
+    CWP_RC_OK                      =   0,
+    CWP_RC_END_OF_INPUT            =  -1,
+    CWP_RC_BUFFER_OVERFLOW         =  -2,
+    CWP_RC_BUFFER_UNDERFLOW        =  -3,
+    CWP_RC_MALFORMED_INPUT         =  -4,
+    CWP_RC_WRONG_BYTE_ORDER        =  -5,
+    CWP_RC_ERROR_IN_HANDLER        =  -6,
+    CWP_RC_ILLEGAL_CALL            =  -7,
+    CWP_RC_MALLOC_ERROR            =  -8,
+    CWP_RC_STOPPED                 =  -9,
+    CWP_RC_TYPE_ERROR              = -10,
+    CWP_RC_VALUE_ERROR             = -11,
+    CWP_RC_WRONG_TIMESTAMP_LENGTH  = -12,
+};
 
 namespace cwpack {
 

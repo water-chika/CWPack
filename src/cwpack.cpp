@@ -50,11 +50,12 @@ void cw_unpack_next (cw_unpack_context* unpack_context)
     uint16_t    tmpu16;
     uint8_t*    p;
 
-#define buffer_end_return_code  CWP_RC_END_OF_INPUT;
-    cw_unpack_assert_space(1);
+    {
+        constexpr auto buffer_end_return_code = CWP_RC_END_OF_INPUT;
+        cw_unpack_assert_space(1);
+    }
     uint8_t c = *p;
-#undef buffer_end_return_code
-#define buffer_end_return_code  CWP_RC_BUFFER_UNDERFLOW;
+    constexpr auto buffer_end_return_code = CWP_RC_BUFFER_UNDERFLOW;
     switch (c)
     {
         case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
@@ -186,13 +187,13 @@ void cw_skip_items (cw_unpack_context* unpack_context, long item_count)
 
     while (item_count-- > 0)
     {
-#undef buffer_end_return_code
-#define buffer_end_return_code  CWP_RC_END_OF_INPUT;
-        cw_unpack_assert_space(1);
+        {
+            constexpr auto buffer_end_return_code = CWP_RC_END_OF_INPUT;
+            cw_unpack_assert_space(1);
+        }
         uint8_t c = *p;
 
-#undef buffer_end_return_code
-#define buffer_end_return_code  CWP_RC_BUFFER_UNDERFLOW;
+        constexpr auto buffer_end_return_code = CWP_RC_BUFFER_UNDERFLOW;
         switch (c)
         {
             case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
@@ -320,13 +321,13 @@ cwpack_item_types cw_look_ahead (cw_unpack_context* unpack_context)
         return CWP_NOT_AN_ITEM;
 
     uint8_t*    p;
-#undef buffer_end_return_code
-#define buffer_end_return_code  CWP_RC_END_OF_INPUT;
-    cw_unpack_assert_space_sub(1,CWP_NOT_AN_ITEM);
+    {
+        constexpr auto buffer_end_return_code = CWP_RC_END_OF_INPUT;
+        cw_unpack_assert_space_sub(1,CWP_NOT_AN_ITEM);
+    }
     unpack_context->current -= 1;    //step back
     uint8_t c = *p;
-#undef buffer_end_return_code
-#define buffer_end_return_code  CWP_RC_BUFFER_UNDERFLOW;
+    constexpr auto buffer_end_return_code = CWP_RC_BUFFER_UNDERFLOW;
     switch (c)
     {
         case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
