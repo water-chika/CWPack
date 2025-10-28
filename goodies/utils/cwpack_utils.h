@@ -24,7 +24,7 @@
 #define CWPack_utils_H__
 
 
-#include "cwpack.h"
+#include "cwpack.hpp"
 
 /*******************************   P A C K   **********************************/
 

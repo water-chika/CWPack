@@ -24,7 +24,7 @@
 #define basic_contexts_h
 
 #include <stdio.h>
-#include "cwpack.h"
+#include "cwpack.hpp"
 
 
 /*****************************************  DYNAMIC MEMORY PACK CONTEXT  ************************/

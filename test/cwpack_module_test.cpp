@@ -27,7 +27,7 @@
 
 #include <stdlib.h>
 
-#include "cwpack.h"
+#include "cwpack.hpp"
 #include "cwpack_config.h"
 #include "cwpack_utils.h"
 

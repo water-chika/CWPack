@@ -21,9 +21,7 @@
  */
 
 
-#ifndef cwpack_defines_h
-#define cwpack_defines_h
-
+#pragma once
 #include "cwpack_config.h"
 
 
@@ -366,6 +364,3 @@
     unpack_context->item.as.ext.start = p;                                  \
     return;
 
-
-
-#endif /* cwpack_defines_h */
