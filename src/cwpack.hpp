@@ -99,10 +99,9 @@ public:
 }
 
 using cw_pack_context = cwpack::context;
-typedef int (*pack_overflow_handler)(cw_pack_context*, unsigned long);
 typedef int (*pack_flush_handler)(cw_pack_context*);
 
-inline static int cw_pack_context_init (cw_pack_context* pack_context, void* data, unsigned long length, pack_overflow_handler hpo) {
+inline static int cw_pack_context_init (cw_pack_context* pack_context, void* data, unsigned long length, cwpack::context::overflow_handler hpo) {
     new (pack_context) cw_pack_context{reinterpret_cast<uint8_t*>(data), length, hpo};
 
     return pack_context->err_no;
@@ -673,7 +672,7 @@ inline static int cw_unpack_context_init (cw_unpack_context* unpack_context, con
     return unpack_context->return_code;
 }
 
-inline static void cw_unpack_next (cw_unpack_context* unpack_context)
+inline static void cw_unpack_next(cw_unpack_context* unpack_context)
 {
     if (unpack_context->return_code)
         return;

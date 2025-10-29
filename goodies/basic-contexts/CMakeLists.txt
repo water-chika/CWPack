@@ -7,6 +7,6 @@ add_library(cwpack_basic_contexts
 	basic_contexts.cpp
 )
 
-target_link_libraries(cwpack_basic_contexts PUBLIC CWPack)
+target_link_libraries(cwpack_basic_contexts PUBLIC cwpack)
 
 target_include_directories(cwpack_basic_contexts PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -7,7 +7,7 @@ add_library(cwpack_utils
 	cwpack_utils.h
 )
 
-target_link_libraries(cwpack_utils PUBLIC CWPack)
+target_link_libraries(cwpack_utils PUBLIC cwpack)
 
 target_include_directories(cwpack_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
