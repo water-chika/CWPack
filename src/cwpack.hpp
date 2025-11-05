@@ -75,8 +75,8 @@ public:
     context() = default;
     context(uint8_t* data, unsigned long length, overflow_handler overflow_handler)
         :
-            start{data},
             current{data},
+            start{data},
             end{data + length},
             be_compatible{false},
             return_code{test_byte_order()},
